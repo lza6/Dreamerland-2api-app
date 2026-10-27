@@ -1,0 +1,10 @@
+apk-unzip/
+jadx-out/
+*.apk
+*.png
+creds.json
+dreamerland_creds.json
+anon_token.json
+*.log
+__pycache__/
+*.webp

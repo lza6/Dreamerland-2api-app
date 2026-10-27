@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><title>Dreamerland 2API Demo</title>
+<style>
+body{font-family:system-ui;background:#0f1220;color:#e6e8f0;max-width:880px;margin:0 auto;padding:24px}
+h1{font-size:1.4em} .card{background:#1a1f35;border-radius:12px;padding:16px;margin:14px 0}
+input,textarea,select,button{font:inherit;border-radius:8px;border:1px solid #3a4166;background:#12162a;color:inherit;padding:8px;width:100%;box-sizing:border-box}
+button{background:#5b6cff;cursor:pointer;border:0;font-weight:600;width:auto;padding:8px 22px}
+button:hover{background:#7480ff} label{display:block;margin:10px 0 4px;font-size:.85em;color:#9aa3c7}
+img{max-width:100%;border-radius:8px;margin-top:8px} pre{background:#12162a;padding:10px;border-radius:8px;overflow:auto;font-size:.8em}
+.row{display:flex;gap:10px;align-items:center}
+</style></head><body>
+<h1>🎨 Dreamerland 2API Demo（本地 mock）</h1>
+<p>OpenAI 兼容端点 <code>http://127.0.0.1:8791/v1</code> — 上游协议提取自 Dreamerland 1.60.0 APK（Flutter, apis.dreamerland.ai + Firebase）。此页仅连本地 mock，不调用真实上游。</p>
+<div class="card">
+  <label>模型</label>
+  <select id="model"></select>
+  <label>Prompt</label>
+  <textarea id="prompt" rows="3">1girl, silver hair, city night, neon lights, masterpiece</textarea>
+  <label>Prompt 增强（/v1/dreamerland/enhance-prompt）</label>
+  <div class="row"><input id="raw" placeholder="原始 prompt"/><button onclick="enhance()">增强</button></div>
+  <div class="row" style="margin-top:14px"><button onclick="gen()">生成图片</button><span id="stat"></span></div>
+  <div id="out"></div>
+  <pre id="log"></pre>
+</div>
+<script>
+const M=[["dreamerland/flux2-klein","FLUX.2 Klein"],["dreamerland/flux","FLUX.1"],["dreamerland/qwen-image","Qwen-Image"],["dreamerland/qwen-image-edit","Qwen-Image-Edit"],["dreamerland/nano-banana","Nano Banana"],["dreamerland/seedream","Seedream"],["dreamerland/hidream","HiDream"],["dreamerland/illustrious-xl","Illustrious XL"],["dreamerland/pony-realism","Pony Realism"],["dreamerland/wan2.2","Wan2.2 视频"],["dreamerland/kling","Kling"],["dreamerland/z-image-turbo","Z-Image Turbo"]];
+document.getElementById('model').innerHTML=M.map(m=>`<option value="${m[0]}">${m[0]} — ${m[1]}</option>`).join('');
+const log=o=>document.getElementById('log').textContent=JSON.stringify(o,null,2);
+async function gen(){
+  const stat=document.getElementById('stat'); stat.textContent='提交中…';
+  const body={model:document.getElementById('model').value,prompt:document.getElementById('prompt').value,n:1,user:'demo-uid'};
+  const r=await fetch('/v1/images/generations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json(); log(j);
+  stat.textContent='task: '+j.task_id;
+  document.getElementById('out').innerHTML='<p>(mock 占位数据 — 真实上游返回图片 URL 于 Firestore 任务文档)</p>';
+}
+async function enhance(){
+  const r=await fetch('/v1/dreamerland/enhance-prompt',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:document.getElementById('raw').value||document.getElementById('prompt').value,uid:'demo-uid'})});
+  const j=await r.json(); log(j);
+  if(j.enhanced) document.getElementById('prompt').value=j.enhanced;
+}
+</script></body></html>
